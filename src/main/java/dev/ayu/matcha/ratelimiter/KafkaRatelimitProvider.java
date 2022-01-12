@@ -12,7 +12,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
-public class GlobalDiscordRatelimitProvider {
+public class KafkaRatelimitProvider {
 
     // GLOBAL
     private static final String KAFKA_GLOBAL_RATELIMIT_BLOCKING_STREAM = "discord-global-ratelimit-blocking-stream";
@@ -32,11 +32,12 @@ public class GlobalDiscordRatelimitProvider {
      * Creates a new global Discord ratelimit provider that will connect with Kafka to
      * provide ratelimiting for all tea clusters.
      */
-    public GlobalDiscordRatelimitProvider() {
+    public KafkaRatelimitProvider() {
         // 1 action every 22 ms (~50 per 1sec)
         this.globalRatelimiter = new Ratelimiter(1, Duration.ofMillis(22));
-        // 1 identify every 87 seconds (~1000 per 24hrs)
-        this.identifyRatelimiter = new Ratelimiter(1, Duration.ofSeconds(87));
+        // 1 identify every 87 seconds is ~1000 per 24hrs
+        // 1 identify every 6.5 seconds is just above the 1 per 5sec discord ratelimit
+        this.identifyRatelimiter = new Ratelimiter(1, Duration.ofMillis(6500));
         try {
             initializeStreams();
         } catch (Throwable e) {

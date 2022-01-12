@@ -1,6 +1,6 @@
 package dev.ayu.matcha;
 
-import dev.ayu.matcha.ratelimiter.GlobalDiscordRatelimitProvider;
+import dev.ayu.matcha.ratelimiter.KafkaRatelimitProvider;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -36,7 +36,7 @@ public class Matcha {
         /*
          * Launch the Global Discord Ratelimit Provider Streams
          */
-        new GlobalDiscordRatelimitProvider();
+        new KafkaRatelimitProvider();
         LOGGER.info("GlobalDiscordRatelimitProvider streams active!");
     }
 

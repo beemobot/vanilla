@@ -1,5 +1,8 @@
 package dev.ayu.matcha.ratelimiter;
 
+/**
+ * This class must match the class in https://github.com/ayuai/tea
+ */
 public enum RatelimitSignal {
 
     REQUEST_PERMIT,
