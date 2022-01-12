@@ -17,13 +17,9 @@ public class KafkaRatelimitProvider {
     // GLOBAL
     private static final String KAFKA_GLOBAL_RATELIMIT_BLOCKING_STREAM = "discord-global-ratelimit-blocking-stream";
     private static final String KAFKA_GLOBAL_RATELIMIT_STREAM = "discord-global-ratelimit-stream";
-    private static final String KAFKA_GLOBAL_RATELIMIT_INPUT_TOPIC = "discord-global-ratelimit-requests";
-    private static final String KAFKA_GLOBAL_RATELIMIT_OUTPUT_TOPIC = "discord-global-ratelimit-grants";
     // IDENTIFY
     private static final String KAFKA_IDENTIFY_RATELIMIT_BLOCKING_STREAM = "discord-identify-ratelimit-blocking-stream";
     private static final String KAFKA_IDENTIFY_RATELIMIT_STREAM = "discord-identify-ratelimit-stream";
-    private static final String KAFKA_IDENTIFY_RATELIMIT_INPUT_TOPIC = "discord-identify-ratelimit-requests";
-    private static final String KAFKA_IDENTIFY_RATELIMIT_OUTPUT_TOPIC = "discord-identify-ratelimit-grants";
 
     private final Ratelimiter globalRatelimiter;
     private final Ratelimiter identifyRatelimiter;
@@ -79,23 +75,23 @@ public class KafkaRatelimitProvider {
         );
         // Initialize the streams individually
         initializeStreamFromProps(
-                KAFKA_GLOBAL_RATELIMIT_INPUT_TOPIC,
-                KAFKA_GLOBAL_RATELIMIT_OUTPUT_TOPIC,
+                RatelimitType.GLOBAL.getRequestsTopic(),
+                RatelimitType.GLOBAL.getGrantsTopic(),
                 globalBlockingProps
         );
         initializeStreamFromProps(
-                KAFKA_GLOBAL_RATELIMIT_INPUT_TOPIC,
-                KAFKA_GLOBAL_RATELIMIT_OUTPUT_TOPIC,
+                RatelimitType.GLOBAL.getRequestsTopic(),
+                RatelimitType.GLOBAL.getGrantsTopic(),
                 globalProps
         );
         initializeStreamFromProps(
-                KAFKA_IDENTIFY_RATELIMIT_INPUT_TOPIC,
-                KAFKA_IDENTIFY_RATELIMIT_OUTPUT_TOPIC,
+                RatelimitType.IDENTIFY.getRequestsTopic(),
+                RatelimitType.IDENTIFY.getGrantsTopic(),
                 identifyBlockingProps
         );
         initializeStreamFromProps(
-                KAFKA_IDENTIFY_RATELIMIT_INPUT_TOPIC,
-                KAFKA_IDENTIFY_RATELIMIT_OUTPUT_TOPIC,
+                RatelimitType.IDENTIFY.getRequestsTopic(),
+                RatelimitType.IDENTIFY.getGrantsTopic(),
                 identifyProps
         );
     }
