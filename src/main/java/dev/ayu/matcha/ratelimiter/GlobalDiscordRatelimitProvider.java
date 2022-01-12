@@ -37,7 +37,12 @@ public class GlobalDiscordRatelimitProvider {
         this.globalRatelimiter = new Ratelimiter(1, Duration.ofMillis(22));
         // 1 identify every 87 seconds (~1000 per 24hrs)
         this.identifyRatelimiter = new Ratelimiter(1, Duration.ofSeconds(87));
-        initializeStreams();
+        try {
+            initializeStreams();
+        } catch (Throwable e) {
+            Matcha.getLogger().error("Unexpected error when initializing Ratelimiter Kafka streams:", e);
+            System.exit(1);
+        }
     }
 
     private static Properties getDefaultStreamProps() {
