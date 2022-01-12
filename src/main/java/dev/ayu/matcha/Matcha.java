@@ -7,7 +7,7 @@ import java.util.TimerTask;
 
 public class Matcha {
 
-    public static final String KAFKA_SERVER = "localhost:9092";
+    public static final String KAFKA_SERVER = "kafka:9092";
     private static final ConsoleLogger LOGGER = new ConsoleLogger();
 
     public static ConsoleLogger getLogger() {
@@ -37,6 +37,7 @@ public class Matcha {
          * Launch the Global Discord Ratelimit Provider Streams
          */
         new GlobalDiscordRatelimitProvider();
+        LOGGER.info("GlobalDiscordRatelimitProvider streams active!");
     }
 
 }
