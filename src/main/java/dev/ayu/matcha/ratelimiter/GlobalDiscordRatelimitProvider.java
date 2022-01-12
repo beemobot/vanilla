@@ -116,7 +116,14 @@ public class GlobalDiscordRatelimitProvider {
                         if (streamName.equals(KAFKA_GLOBAL_RATELIMIT_BLOCKING_STREAM)) {
                             globalRatelimiter.requestQuota();
                         } else {
+                            Matcha.getLogger().info("Received " + requestingCluster + " requesting identify quota."
+                                    + " Estimated wait time: "
+                                    + Duration.ofNanos(identifyRatelimiter.getRemainingPauseNanos()).toSeconds()
+                                    + " seconds");
+                            long startTime = System.nanoTime();
                             identifyRatelimiter.requestQuota();
+                            Matcha.getLogger().info("Granted " + requestingCluster + " identify quota after "
+                                    + Duration.ofNanos(System.nanoTime() - startTime).toSeconds() + " seconds.");
                         }
                         return new KeyValue<>(
                                 requestingCluster,
