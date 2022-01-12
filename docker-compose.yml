@@ -1,0 +1,26 @@
+version: '2'
+services:
+  matcha:
+    build: ./gradlew run
+#    ports:
+#      - "8000:8000"
+    links:
+      - kafka
+    restart: unless-stopped
+  kafka:
+      image: wurstmeister/kafka
+      ports:
+        - "9092:9092"
+      hostname: kafka
+      links:
+        - zookeeper
+      environment:
+        - KAFKA_ADVERTISED_HOST_NAME=kafka
+        - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+        - KAFKA_ADVERTISED_PORT=9092
+      restart: unless-stopped
+  zookeeper:
+      image: wurstmeister/zookeeper
+      ports:
+        - "2181:2181"
+      restart: unless-stopped
