@@ -5,8 +5,13 @@ plugins {
 group 'dev.ayu.matcha'
 version '1.0.0'
 
+test {
+    useJUnitPlatform()
+}
+
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -14,6 +19,23 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 }
 
-test {
-    useJUnitPlatform()
+dependencies {
+    // Junit
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+    // Sentry
+    implementation 'io.sentry:sentry:5.5.1'
+    // Kafka client
+    implementation 'org.apache.kafka:kafka-clients:3.0.0'
+    implementation 'org.apache.kafka:kafka-streams:3.0.0'
+    // Prometheus for Grafana Cloud https://github.com/prometheus/client_java
+    implementation 'io.prometheus:simpleclient:0.14.1'
+    implementation 'io.prometheus:simpleclient_jetty:0.14.1'
+    implementation 'io.prometheus:simpleclient_servlet_jakarta:0.14.1'
+    // Jetty for Prometheus https://github.com/eclipse/jetty.project
+    implementation 'org.eclipse.jetty:jetty-server:11.0.7'
+    implementation 'org.eclipse.jetty:jetty-servlet:11.0.7'
+    // Javax Servlet for Prometheus
+    // https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api
+    implementation 'javax.servlet:javax.servlet-api:4.0.1'
 }
