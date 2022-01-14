@@ -1,10 +1,12 @@
-version: '2'
+version: '2.4'
 services:
   matcha:
       build: .
       container_name: "matcha"
       command: "gradle run"
       mem_limit: 500m
+      networks:
+        - kafka-network
       depends_on:
         - kafka
       restart: always
@@ -15,7 +17,9 @@ services:
       ports:
         - "9092:9092"
       hostname: kafka
-      depends_on :
+      networks:
+        - kafka-network
+      depends_on:
         - zookeeper
       environment:
         - KAFKA_ADVERTISED_HOST_NAME=kafka
@@ -27,4 +31,10 @@ services:
       image: wurstmeister/zookeeper
       ports:
         - "2181:2181"
+      networks:
+        - kafka-network
       restart: always
+
+networks:
+  kafka-network:
+    external: true
