@@ -21,6 +21,7 @@ services:
         - KAFKA_ADVERTISED_PORT=9092
       restart: always
   zookeeper:
+      container_name: 'zookeeper'
       image: wurstmeister/zookeeper
       ports:
         - "2181:2181"
