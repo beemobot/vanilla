@@ -2,6 +2,7 @@ version: '2'
 services:
   matcha:
       build: .
+      container_name: "matcha"
       command: "gradle run"
       mem_limit: 500m
       depends_on:
@@ -9,6 +10,7 @@ services:
       restart: always
   kafka:
       image: wurstmeister/kafka
+      container_name: "kafka"
       mem_limit: 7g
       ports:
         - "9092:9092"
@@ -21,7 +23,7 @@ services:
         - KAFKA_ADVERTISED_PORT=9092
       restart: always
   zookeeper:
-      container_name: 'zookeeper'
+      container_name: "zookeeper"
       image: wurstmeister/zookeeper
       ports:
         - "2181:2181"
