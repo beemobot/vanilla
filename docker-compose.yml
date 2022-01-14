@@ -2,6 +2,7 @@ version: '2'
 services:
   matcha:
       build: .
+      command: "gradle run"
       mem_limit: 500m
       depends_on:
         - kafka
