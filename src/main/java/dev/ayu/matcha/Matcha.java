@@ -34,10 +34,9 @@ public class Matcha {
         memoryTimer.scheduleAtFixedRate(memoryLogsTask, 0L, 15_000L);
 
         /*
-         * Launch the Global Discord Ratelimit Provider Streams
+         * Launch the ratelimit provider (creates all necessary ratelimit topics)
          */
         new KafkaRatelimitProvider();
-        LOGGER.info("GlobalDiscordRatelimitProvider streams active!");
     }
 
 }

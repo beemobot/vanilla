@@ -1,6 +1,9 @@
 package dev.ayu.matcha.ratelimiter;
 
 import dev.ayu.matcha.Matcha;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.KafkaAdminClient;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.*;
@@ -11,6 +14,7 @@ import org.apache.kafka.streams.kstream.Produced;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 
 public class KafkaRatelimitProvider {
 
@@ -25,7 +29,7 @@ public class KafkaRatelimitProvider {
     private final Ratelimiter identifyRatelimiter;
 
     /**
-     * Creates a new global Discord ratelimit provider that will connect with Kafka to
+     * Creates a new ratelimit provider that will connect with Kafka to
      * provide ratelimiting for all tea clusters.
      */
     public KafkaRatelimitProvider() {
@@ -35,11 +39,18 @@ public class KafkaRatelimitProvider {
         // 1 identify every 6.5 seconds is just above the 1 per 5sec discord ratelimit
         this.identifyRatelimiter = new Ratelimiter(1, Duration.ofMillis(6500));
         try {
+            initializeKafkaTopics();
+        } catch (Throwable e) {
+            Matcha.getLogger().error("Unexpected error when initializing Kafka topics:", e);
+            System.exit(1);
+        }
+        try {
             initializeStreams();
         } catch (Throwable e) {
             Matcha.getLogger().error("Unexpected error when initializing Ratelimiter Kafka streams:", e);
             System.exit(1);
         }
+        Matcha.getLogger().info("KafkaRatelimitProvider streams active!");
     }
 
     private static Properties getDefaultStreamProps() {
@@ -49,6 +60,32 @@ public class KafkaRatelimitProvider {
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE_V2);
         return props;
+    }
+
+    private void initializeKafkaTopics() throws ExecutionException, InterruptedException {
+        AdminClient client = AdminClient.create(getDefaultStreamProps());
+        Set<String> currentTopics = client.listTopics().names().get();
+        Set<String> necessaryTopics = Set.of(
+                RatelimitType.GLOBAL.getGrantsTopic(),
+                RatelimitType.GLOBAL.getRequestsTopic(),
+                RatelimitType.IDENTIFY.getGrantsTopic(),
+                RatelimitType.IDENTIFY.getRequestsTopic()
+        );
+        Set<NewTopic> newTopics = new HashSet<>();
+        for (String topic : necessaryTopics) {
+            if (currentTopics.contains(topic)) {
+                continue;
+            }
+            newTopics.add(new NewTopic(topic, 1, (short) 1));
+        }
+        if (!newTopics.isEmpty()) {
+            Matcha.getLogger().info("Kafka broker has missing topics: " + newTopics);
+            Matcha.getLogger().info("Creating missing topics...");
+            client.createTopics(newTopics)
+                    .all()
+                    .get();
+            Matcha.getLogger().info("Topics created!");
+        }
     }
 
     private void initializeStreams() {
