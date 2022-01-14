@@ -6,7 +6,7 @@ services:
       mem_limit: 500m
       depends_on:
         - kafka
-      restart: unless-stopped
+      restart: always
   kafka:
       image: wurstmeister/kafka
       mem_limit: 7g
@@ -19,9 +19,9 @@ services:
         - KAFKA_ADVERTISED_HOST_NAME=kafka
         - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
         - KAFKA_ADVERTISED_PORT=9092
-      restart: unless-stopped
+      restart: always
   zookeeper:
       image: wurstmeister/zookeeper
       ports:
         - "2181:2181"
-      restart: unless-stopped
+      restart: always
