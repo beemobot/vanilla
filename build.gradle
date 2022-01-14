@@ -13,7 +13,7 @@ test {
 application {
     mainClass.set("dev.ayu.matcha.Matcha")
     applicationDefaultJvmArgs = [
-            "-Xmx256m",
+            "-XX:MaxRAMPercentage=90.0",
             "-XX:+UseG1GC",
             "-XX:+ParallelRefProcEnabled",
             "-XX:MaxGCPauseMillis=200",

@@ -2,11 +2,13 @@ version: '2'
 services:
   matcha:
       build: .
+      mem_limit: 500m
       depends_on:
         - kafka
       restart: unless-stopped
   kafka:
       image: wurstmeister/kafka
+      mem_limit: 7g
       ports:
         - "9092:9092"
       hostname: kafka
