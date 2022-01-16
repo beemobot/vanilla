@@ -153,16 +153,21 @@ public class KafkaRatelimitProvider {
             ).map((requestingCluster, request) -> {
                     if (RatelimitSignal.valueOf(request) == RatelimitSignal.REQUEST_PERMIT) {
                         if (streamName.equals(KAFKA_GLOBAL_RATELIMIT_BLOCKING_STREAM)) {
+                            Matcha.getLogger().info("Received " + requestingCluster + " requesting global quota."
+                                    + " Current number of available permits: "
+                                    + globalRatelimiter.getRemainingPermits());
+                            long startTime = System.nanoTime();
                             globalRatelimiter.requestQuota();
+                            Matcha.getLogger().info("Granted " + requestingCluster + " global quota after "
+                                    + Duration.ofNanos(System.nanoTime() - startTime).toMillis() + " ms.");
                         } else {
                             Matcha.getLogger().info("Received " + requestingCluster + " requesting identify quota."
-                                    + " Estimated wait time: "
-                                    + Duration.ofNanos(identifyRatelimiter.getRemainingPauseNanos()).toSeconds()
-                                    + " seconds");
+                                    + " Current number of available permits: "
+                                    + identifyRatelimiter.getRemainingPermits());
                             long startTime = System.nanoTime();
                             identifyRatelimiter.requestQuota();
                             Matcha.getLogger().info("Granted " + requestingCluster + " identify quota after "
-                                    + Duration.ofNanos(System.nanoTime() - startTime).toSeconds() + " seconds.");
+                                    + Duration.ofNanos(System.nanoTime() - startTime).toMillis() + " ms.");
                         }
                         return new KeyValue<>(
                                 requestingCluster,
