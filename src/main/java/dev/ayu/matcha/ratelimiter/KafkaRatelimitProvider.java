@@ -151,7 +151,7 @@ public class KafkaRatelimitProvider {
             stream = stream.filter((requestingCluster, request) ->
                     request.equals(RatelimitSignal.REQUEST_PERMIT.toString())
             ).map((requestingCluster, request) -> {
-                    if (RatelimitSignal.valueOf(request) == RatelimitSignal.REQUEST_PERMIT) {
+                    if (request.equals(RatelimitSignal.REQUEST_PERMIT.toString())) {
                         if (streamName.equals(KAFKA_GLOBAL_RATELIMIT_BLOCKING_STREAM)) {
                             Matcha.getLogger().info("Received " + requestingCluster + " requesting global quota."
                                     + " Current number of available permits: "
@@ -173,6 +173,9 @@ public class KafkaRatelimitProvider {
                                 requestingCluster,
                                 RatelimitSignal.GRANT_PERMIT.toString()
                         );
+                    } else  {
+                        Matcha.getLogger().info("Matcha received an unknown request from " + requestingCluster + ": "
+                                + request);
                     }
                     return null;
             });
@@ -201,6 +204,8 @@ public class KafkaRatelimitProvider {
                             }
                         }
                         default -> {
+                            Matcha.getLogger().info("Matcha received an unknown request from " + requestingCluster
+                                    + ": " + request);
                             return null;
                         }
                     }
