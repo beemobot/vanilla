@@ -11,7 +11,7 @@ services:
         - kafka
       restart: always
   kafka:
-      image: wurstmeister/kafka
+      image: 'bitnami/kafka:latest'
       container_name: "kafka"
       mem_limit: 7g
       ports:
@@ -22,20 +22,21 @@ services:
       depends_on:
         - zookeeper
       environment:
-        - KAFKA_ADVERTISED_HOST_NAME=kafka
+        - KAFKA_BROKER_ID=1
         - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-        - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-        - KAFKA_LISTENERS=PLAINTEXT//0.0.0.0:9092
-        - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-        - KAFKA_BROKER_ID=222
+        - ALLOW_PLAINTEXT_LISTENER=yes
+      volumes:
+        - ./data/kafka:/bitnami/kafka
       restart: always
   zookeeper:
       container_name: "zookeeper"
-      image: wurstmeister/zookeeper
+      image: 'bitnami/zookeeper:latest'
       ports:
         - "2181:2181"
       networks:
         - kafka-network
+      environment:
+        - ALLOW_ANONYMOUS_LOGIN=yes
       restart: always
 
 networks:
