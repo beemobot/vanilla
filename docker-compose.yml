@@ -25,8 +25,8 @@ services:
         - KAFKA_BROKER_ID=1
         - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
         - ALLOW_PLAINTEXT_LISTENER=yes
-      volumes:
-        - ./data/kafka:/bitnami/kafka
+      # volumes:
+      #   - ./data/kafka:/bitnami/kafka
       restart: always
   zookeeper:
       container_name: "zookeeper"
