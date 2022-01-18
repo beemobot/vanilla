@@ -22,6 +22,7 @@ services:
       depends_on:
         - zookeeper
       environment:
+        - KAFKA_BROKER_ID=001
         - KAFKA_ADVERTISED_HOST_NAME=kafka
         - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
         - KAFKA_ADVERTISED_PORT=9092
