@@ -140,15 +140,15 @@ public class KafkaRatelimitProvider {
         // Serializer/deserializer (serde)
         final Serde<String> stringSerde = Serdes.String();
         // Construct a `KStream` from the input topic
-        KStream<String, String> stream = builder.stream(
-                inputTopic,
-                Consumed.with(stringSerde, stringSerde)
-        );
+        KStream<String, String> stream = builder.stream(inputTopic);
         String streamName = props.get(StreamsConfig.APPLICATION_ID_CONFIG)
                 .toString();
         if (streamName.toLowerCase(Locale.ROOT).contains("blocking")) {
             // Blocking streams:
-            stream = stream.filter((requestingCluster, request) ->
+            stream = stream.map((key, value) -> {
+                Matcha.getLogger().info("Receiving " + key + " :: " + value + " in " + streamName);
+                return new KeyValue<>(key, value);
+            }).filter((requestingCluster, request) ->
                     request.equals(RatelimitSignal.REQUEST_PERMIT.toString())
             ).map((requestingCluster, request) -> {
                     if (request.equals(RatelimitSignal.REQUEST_PERMIT.toString())) {
@@ -181,7 +181,10 @@ public class KafkaRatelimitProvider {
             });
         } else {
             // Non-blocking streams:
-            stream = stream.filter((requestingCluster, request) ->
+            stream = stream.map((key, value) -> {
+                Matcha.getLogger().info("Receiving " + key + " :: " + value + " in " + streamName);
+                return new KeyValue<>(key, value);
+            }).filter((requestingCluster, request) ->
                     !request.equals(RatelimitSignal.REQUEST_PERMIT.toString())
             ).map((requestingCluster, request) -> {
                     long amount;
@@ -215,7 +218,7 @@ public class KafkaRatelimitProvider {
                     );
             });
         }
-        stream.to(outputTopic, Produced.with(stringSerde, stringSerde));
+        stream.to(outputTopic);
 
         final Topology topology = builder.build();
 
@@ -233,6 +236,7 @@ public class KafkaRatelimitProvider {
 
         Thread streamThread = new Thread(() -> {
             try {
+                Matcha.getLogger().info("Starting " + streamName + " Kafka stream.");
                 streams.start();
                 latch.await();
             } catch (Throwable e) {
