@@ -1,2 +1,2 @@
 # matcha
-the main hub for all tea clusters; also the host of the kafka broker
+tea's global broker for ratelimits and other cross-JVM requests
