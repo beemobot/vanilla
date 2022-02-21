@@ -1,2 +1,3 @@
-rootProject.name = 'matcha'
+includeBuild "modules/latte"
 
+rootProject.name = 'matcha'

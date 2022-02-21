@@ -1,5 +1,7 @@
 package dev.ayu.matcha.ratelimiter;
 
+import dev.ayu.latte.ratelimit.RatelimitSignal;
+import dev.ayu.latte.ratelimit.RatelimitType;
 import dev.ayu.matcha.Matcha;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.KafkaAdminClient;
