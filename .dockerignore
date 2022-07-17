@@ -1,0 +1,9 @@
+.github/
+.gradle/
+.idea/
+build/
+.env
+.env.example
+Dockerfile
+docker-compose.yml
+README.md
