@@ -150,30 +150,30 @@ public class KafkaRatelimitProvider {
         if (streamName.toLowerCase(Locale.ROOT).contains("blocking")) {
             // Blocking streams:
             stream = stream.map((key, value) -> {
-                LOGGER.info("Receiving {} :: {} in {}", key, value, streamName);
+                LOGGER.debug("Receiving {} :: {} in {}", key, value, streamName);
                 return new KeyValue<>(key, value);
             }).filter((requestingCluster, request) ->
                     request.equals(RatelimitSignal.REQUEST_PERMIT.toString())
             ).map((requestingCluster, request) -> {
                     if (request.equals(RatelimitSignal.REQUEST_PERMIT.toString())) {
                         if (streamName.equals(KAFKA_GLOBAL_RATELIMIT_BLOCKING_STREAM)) {
-                            LOGGER.info("Received {} requesting global quota. " +
+                            LOGGER.debug("Received {} requesting global quota. " +
                                     "Current number of available permits: {}",
                                     requestingCluster,
                                     globalRatelimiter.getRemainingPermits());
                             long startTime = System.nanoTime();
                             globalRatelimiter.requestQuota();
-                            LOGGER.info("Granted {} global quota after {} ms.",
+                            LOGGER.debug("Granted {} global quota after {} ms.",
                                     requestingCluster,
                                     Duration.ofNanos(System.nanoTime() - startTime).toMillis());
                         } else {
-                            LOGGER.info("Received {} requesting identify quota. " +
+                            LOGGER.debug("Received {} requesting identify quota. " +
                                     "Current number of available permits: {}",
                                     requestingCluster,
                                     identifyRatelimiter.getRemainingPermits());
                             long startTime = System.nanoTime();
                             identifyRatelimiter.requestQuota();
-                            LOGGER.info("Granted {} identify quota after {} ms.",
+                            LOGGER.debug("Granted {} identify quota after {} ms.",
                                     requestingCluster,
                                     Duration.ofNanos(System.nanoTime() - startTime).toMillis());
                         }
@@ -190,7 +190,7 @@ public class KafkaRatelimitProvider {
         } else {
             // Non-blocking streams:
             stream = stream.map((key, value) -> {
-                LOGGER.info("Receiving {} :: {} in {}", key, value, streamName);
+                LOGGER.debug("Receiving {} :: {} in {}", key, value, streamName);
                 return new KeyValue<>(key, value);
             }).filter((requestingCluster, request) ->
                     !request.equals(RatelimitSignal.REQUEST_PERMIT.toString())
