@@ -159,8 +159,8 @@ public class KafkaRatelimitProvider {
                         if (streamName.equals(KAFKA_GLOBAL_RATELIMIT_BLOCKING_STREAM)) {
                             LOGGER.info("Received {} requesting global quota. " +
                                     "Current number of available permits: {}",
-                                    globalRatelimiter.getRemainingPermits(),
-                                    requestingCluster);
+                                    requestingCluster,
+                                    globalRatelimiter.getRemainingPermits());
                             long startTime = System.nanoTime();
                             globalRatelimiter.requestQuota();
                             LOGGER.info("Granted {} global quota after {} ms.",
@@ -169,8 +169,8 @@ public class KafkaRatelimitProvider {
                         } else {
                             LOGGER.info("Received {} requesting identify quota. " +
                                     "Current number of available permits: {}",
-                                    identifyRatelimiter.getRemainingPermits(),
-                                    requestingCluster);
+                                    requestingCluster,
+                                    identifyRatelimiter.getRemainingPermits());
                             long startTime = System.nanoTime();
                             identifyRatelimiter.requestQuota();
                             LOGGER.info("Granted {} identify quota after {} ms.",
