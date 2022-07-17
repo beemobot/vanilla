@@ -1,5 +1,6 @@
 package dev.ayu.matcha;
 
+import dev.ayu.latte.config.Configurator;
 import dev.ayu.matcha.ratelimiter.KafkaRatelimitProvider;
 
 import java.util.Timer;
@@ -7,7 +8,6 @@ import java.util.TimerTask;
 
 public class Matcha {
 
-    public static final String KAFKA_SERVER = "kafka:9092";
     private static final ConsoleLogger LOGGER = new ConsoleLogger();
 
     public static ConsoleLogger getLogger() {
@@ -33,9 +33,9 @@ public class Matcha {
         // No delay; 15 second interval.
         memoryTimer.scheduleAtFixedRate(memoryLogsTask, 0L, 15_000L);
 
-        /*
-         * Launch the ratelimit provider (creates all necessary ratelimit topics)
-         */
+        Configurator.create().mirror(Config.class);
+
+        // Launch the ratelimit provider (creates all necessary ratelimit topics)
         new KafkaRatelimitProvider();
     }
 

@@ -2,16 +2,14 @@ package dev.ayu.matcha.ratelimiter;
 
 import dev.ayu.latte.ratelimit.RatelimitSignal;
 import dev.ayu.latte.ratelimit.RatelimitType;
+import dev.ayu.matcha.Config;
 import dev.ayu.matcha.Matcha;
 import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.*;
-import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Produced;
 
 import java.time.Duration;
 import java.util.*;
@@ -57,7 +55,7 @@ public class KafkaRatelimitProvider {
 
     private static Properties getDefaultStreamProps() {
         Properties props = new Properties();
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Matcha.KAFKA_SERVER);
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Config.KAFKA_HOST);
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE_V2);
