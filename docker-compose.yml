@@ -1,44 +1,48 @@
-version: '2.4'
+version: "3.8"
 services:
+
   matcha:
-      build: .
-      container_name: "matcha"
-      command: "gradle run"
-      mem_limit: 500m
-      networks:
-        - kafka-network
-      depends_on:
-        - kafka
-      restart: always
+    build: .
+    container_name: matcha
+    restart: unless-stopped
+    networks:
+      - kafka
+    depends_on:
+      - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    environment:
+      KAFKA_HOST: kafka:9092
+
   kafka:
-      image: 'bitnami/kafka:latest'
-      container_name: "kafka"
-      mem_limit: 7g
-      ports:
-        - "9092:9092"
-      hostname: kafka
-      networks:
-        - kafka-network
-      depends_on:
-        - zookeeper
-      environment:
-        - KAFKA_BROKER_ID=1
-        - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-        - ALLOW_PLAINTEXT_LISTENER=yes
-      # volumes:
-      #   - ./data/kafka:/bitnami/kafka
-      restart: always
-  zookeeper:
-      container_name: "zookeeper"
-      image: 'bitnami/zookeeper:latest'
-      ports:
-        - "2181:2181"
-      networks:
-        - kafka-network
-      environment:
-        - ALLOW_ANONYMOUS_LOGIN=yes
-      restart: always
+    image: bitnami/kafka:3.2
+    container_name: kafka
+    hostname: kafka
+    restart: unless-stopped
+    networks:
+      - kafka
+    expose:
+      - "9092"
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    environment:
+      KAFKA_CFG_BROKER_ID: 1
+      KAFKA_KRAFT_CLUSTER_ID: AAAAAAAAAAAAAAAAAAAAAA== # 16 null bytes, base64 encoded
+      BITNAMI_DEBUG: "true"
+      ALLOW_PLAINTEXT_LISTENER: yes
+      KAFKA_ENABLE_KRAFT: yes
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@localhost:9999
+      KAFKA_CFG_LISTENERS: CONTROLLER://:9999,LOCAL://:9090,DOCKER://:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: LOCAL://localhost:9090,DOCKER://kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,LOCAL:PLAINTEXT,DOCKER:PLAINTEXT
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: LOCAL
 
 networks:
-  kafka-network:
+  kafka:
     external: true

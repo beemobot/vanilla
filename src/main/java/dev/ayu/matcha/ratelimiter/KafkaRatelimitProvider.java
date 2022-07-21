@@ -1,17 +1,16 @@
 package dev.ayu.matcha.ratelimiter;
 
+import dev.ayu.latte.logging.LoggerKt;
 import dev.ayu.latte.ratelimit.RatelimitSignal;
 import dev.ayu.latte.ratelimit.RatelimitType;
-import dev.ayu.matcha.Matcha;
+import dev.ayu.matcha.Config;
 import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.*;
-import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Produced;
+import org.apache.logging.log4j.Logger;
 
 import java.time.Duration;
 import java.util.*;
@@ -19,6 +18,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
 public class KafkaRatelimitProvider {
+
+    private static final Logger LOGGER = LoggerKt.getLogger(KafkaRatelimitProvider.class);
 
     // GLOBAL
     private static final String KAFKA_GLOBAL_RATELIMIT_BLOCKING_STREAM = "discord-global-ratelimit-blocking-stream";
@@ -40,24 +41,26 @@ public class KafkaRatelimitProvider {
         // 1 identify every 87 seconds is ~1000 per 24hrs
         // 1 identify every 6.5 seconds is just above the 1 per 5sec discord ratelimit
         this.identifyRatelimiter = new Ratelimiter(1, Duration.ofMillis(6500));
+
         try {
             initializeKafkaTopics();
         } catch (Throwable e) {
-            Matcha.getLogger().error("Unexpected error when initializing Kafka topics:", e);
+            LOGGER.error("Unexpected error when initializing Kafka topics", e);
             System.exit(1);
         }
         try {
             initializeStreams();
         } catch (Throwable e) {
-            Matcha.getLogger().error("Unexpected error when initializing Ratelimiter Kafka streams:", e);
+            LOGGER.error("Unexpected error when initializing Ratelimiter Kafka streams", e);
             System.exit(1);
         }
-        Matcha.getLogger().info("KafkaRatelimitProvider streams active!");
+
+        LOGGER.info("KafkaRatelimitProvider streams active!");
     }
 
     private static Properties getDefaultStreamProps() {
         Properties props = new Properties();
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Matcha.KAFKA_SERVER);
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Config.KAFKA_HOST);
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE_V2);
@@ -81,12 +84,11 @@ public class KafkaRatelimitProvider {
             newTopics.add(new NewTopic(topic, 1, (short) 1));
         }
         if (!newTopics.isEmpty()) {
-            Matcha.getLogger().info("Kafka broker has missing topics: " + newTopics);
-            Matcha.getLogger().info("Creating missing topics...");
+            LOGGER.info("Creating missing Kafka topics {}", newTopics);
             client.createTopics(newTopics)
                     .all()
                     .get();
-            Matcha.getLogger().info("Topics created!");
+            LOGGER.info("Topics created!");
         }
     }
 
@@ -148,43 +150,47 @@ public class KafkaRatelimitProvider {
         if (streamName.toLowerCase(Locale.ROOT).contains("blocking")) {
             // Blocking streams:
             stream = stream.map((key, value) -> {
-                Matcha.getLogger().info("Receiving " + key + " :: " + value + " in " + streamName);
+                LOGGER.debug("Receiving {} :: {} in {}", key, value, streamName);
                 return new KeyValue<>(key, value);
             }).filter((requestingCluster, request) ->
                     request.equals(RatelimitSignal.REQUEST_PERMIT.toString())
             ).map((requestingCluster, request) -> {
                     if (request.equals(RatelimitSignal.REQUEST_PERMIT.toString())) {
                         if (streamName.equals(KAFKA_GLOBAL_RATELIMIT_BLOCKING_STREAM)) {
-                            Matcha.getLogger().info("Received " + requestingCluster + " requesting global quota."
-                                    + " Current number of available permits: "
-                                    + globalRatelimiter.getRemainingPermits());
+                            LOGGER.debug("Received {} requesting global quota. " +
+                                    "Current number of available permits: {}",
+                                    requestingCluster,
+                                    globalRatelimiter.getRemainingPermits());
                             long startTime = System.nanoTime();
                             globalRatelimiter.requestQuota();
-                            Matcha.getLogger().info("Granted " + requestingCluster + " global quota after "
-                                    + Duration.ofNanos(System.nanoTime() - startTime).toMillis() + " ms.");
+                            LOGGER.debug("Granted {} global quota after {} ms.",
+                                    requestingCluster,
+                                    Duration.ofNanos(System.nanoTime() - startTime).toMillis());
                         } else {
-                            Matcha.getLogger().info("Received " + requestingCluster + " requesting identify quota."
-                                    + " Current number of available permits: "
-                                    + identifyRatelimiter.getRemainingPermits());
+                            LOGGER.debug("Received {} requesting identify quota. " +
+                                    "Current number of available permits: {}",
+                                    requestingCluster,
+                                    identifyRatelimiter.getRemainingPermits());
                             long startTime = System.nanoTime();
                             identifyRatelimiter.requestQuota();
-                            Matcha.getLogger().info("Granted " + requestingCluster + " identify quota after "
-                                    + Duration.ofNanos(System.nanoTime() - startTime).toMillis() + " ms.");
+                            LOGGER.debug("Granted {} identify quota after {} ms.",
+                                    requestingCluster,
+                                    Duration.ofNanos(System.nanoTime() - startTime).toMillis());
                         }
                         return new KeyValue<>(
                                 requestingCluster,
                                 RatelimitSignal.GRANT_PERMIT.toString()
                         );
                     } else  {
-                        Matcha.getLogger().info("Matcha received an unknown request from " + requestingCluster + ": "
-                                + request);
+                        LOGGER.info("Matcha received an unknown request from {}: {}",
+                                requestingCluster, request);
                     }
                     return null;
             });
         } else {
             // Non-blocking streams:
             stream = stream.map((key, value) -> {
-                Matcha.getLogger().info("Receiving " + key + " :: " + value + " in " + streamName);
+                LOGGER.debug("Receiving {} :: {} in {}", key, value, streamName);
                 return new KeyValue<>(key, value);
             }).filter((requestingCluster, request) ->
                     !request.equals(RatelimitSignal.REQUEST_PERMIT.toString())
@@ -209,8 +215,8 @@ public class KafkaRatelimitProvider {
                             }
                         }
                         default -> {
-                            Matcha.getLogger().info("Matcha received an unknown request from " + requestingCluster
-                                    + ": " + request);
+                            LOGGER.info("Matcha received an unknown request from {}: {}",
+                                    requestingCluster, request);
                             return null;
                         }
                     }
@@ -238,11 +244,11 @@ public class KafkaRatelimitProvider {
 
         Thread streamThread = new Thread(() -> {
             try {
-                Matcha.getLogger().info("Starting " + streamName + " Kafka stream.");
+                LOGGER.info("Starting {} Kafka stream", streamName);
                 streams.start();
                 latch.await();
             } catch (Throwable e) {
-                Matcha.getLogger().uncaughtError(streamName + " error:", e);
+                LOGGER.error("Uncaught error in {} stream", streamName, e);
             }
         }, streamName + "-thread");
         streamThread.setDaemon(false);

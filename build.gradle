@@ -6,14 +6,9 @@ plugins {
 group 'dev.ayu.matcha'
 version '1.0.0'
 
-test {
-    useJUnitPlatform()
-}
-
 application {
     mainClass.set("dev.ayu.matcha.Matcha")
     applicationDefaultJvmArgs = [
-            "-XX:MaxRAMPercentage=90.0",
             "-XX:+UseG1GC",
             "-XX:+ParallelRefProcEnabled",
             "-XX:MaxGCPauseMillis=200",
@@ -34,30 +29,25 @@ application {
     ]
 }
 
+task downloadDependencies(type: Copy) {
+    from sourceSets.test.runtimeClasspath
+    into 'runtime/'
+}
+
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    implementation 'dev.ayu:latte'
+    implementation 'dev.ayu.latte:latte'
 
-    // Junit
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
-    // Sentry
-    implementation 'io.sentry:sentry:5.5.1'
+    // Logging
+    implementation 'org.apache.logging.log4j:log4j-api:2.18.0'
+    implementation 'org.apache.logging.log4j:log4j-core:2.18.0'
+
     // Kafka client
-    implementation 'org.apache.kafka:kafka-clients:3.0.0'
-    implementation 'org.apache.kafka:kafka-streams:3.0.0'
-    // Prometheus for Grafana Cloud https://github.com/prometheus/client_java
-    implementation 'io.prometheus:simpleclient:0.14.1'
-    implementation 'io.prometheus:simpleclient_jetty:0.14.1'
-    implementation 'io.prometheus:simpleclient_servlet_jakarta:0.14.1'
-    // Jetty for Prometheus https://github.com/eclipse/jetty.project
-    implementation 'org.eclipse.jetty:jetty-server:11.0.7'
-    implementation 'org.eclipse.jetty:jetty-servlet:11.0.7'
-    // Javax Servlet for Prometheus
-    // https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api
-    implementation 'javax.servlet:javax.servlet-api:4.0.1'
+    implementation 'org.apache.kafka:kafka-clients:3.2.0'
+    // Kafka streams
+    implementation 'org.apache.kafka:kafka-streams:3.2.0'
 }
