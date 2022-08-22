@@ -1,38 +1,38 @@
 package dev.ayu.matcha;
 
 import dev.ayu.latte.config.Configurator;
+import dev.ayu.latte.kafka.KafkaConnection;
 import dev.ayu.latte.logging.LoggerKt;
-import dev.ayu.matcha.ratelimiter.KafkaRatelimitProvider;
+import dev.ayu.latte.ratelimit.SharedRatelimitData;
 import org.apache.logging.log4j.Logger;
-
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class Matcha {
 
     private static final Logger LOGGER = LoggerKt.getLogger(Matcha.class);
 
     public static void main(String[] args) {
-
-        Timer memoryTimer = new Timer();
-        TimerTask memoryLogsTask = new TimerTask() {
-            @Override
-            public void run() {
-                LOGGER.info(
-                    String.format("MEM INFO: TOTAL=%.2f MB, FREE=%.2f MB, MAX=%.2f MB",
-                        Runtime.getRuntime().totalMemory()/1024.0/1024.0,
-                        Runtime.getRuntime().freeMemory()/1024.0/1024.0,
-                        Runtime.getRuntime().maxMemory()/1024.0/1024.0)
-                );
-            }
-        };
-        // No delay; 15 second interval.
-        memoryTimer.scheduleAtFixedRate(memoryLogsTask, 0L, 15_000L);
-
+        LOGGER.debug("Loading configuration");
         Configurator.create().mirror(Config.class);
 
-        // Launch the ratelimit provider (creates all necessary ratelimit topics)
-        new KafkaRatelimitProvider();
+        try {
+            LOGGER.debug("Initializing Kafka connection");
+            KafkaConnection kafkaConnection = new KafkaConnection(
+                    Config.KAFKA_HOST,
+                    "matcha",
+                    "matcha",
+                    SharedRatelimitData.MATCHA_CLUSTER_ID
+            );
+
+            LOGGER.debug("Initializing Kafka Ratelimit client");
+            new RatelimitClient(kafkaConnection);
+
+            LOGGER.debug("Starting Kafka connection");
+            kafkaConnection.start();
+        } catch (Throwable t) {
+            LOGGER.error("Error initializing Kafka", t);
+            System.exit(1);
+        }
+        LOGGER.info("Initialization done!");
     }
 
 }
