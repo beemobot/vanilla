@@ -1,9 +1,9 @@
 package dev.ayu.matcha;
 
+import dev.ayu.latte.CommonConfig;
 import dev.ayu.latte.config.Configurator;
 import dev.ayu.latte.kafka.KafkaConnection;
 import dev.ayu.latte.logging.LoggerKt;
-import dev.ayu.latte.ratelimit.SharedRatelimitData;
 import org.apache.logging.log4j.Logger;
 
 public class Matcha {
@@ -20,7 +20,7 @@ public class Matcha {
                     Config.KAFKA_HOST,
                     "matcha",
                     "matcha",
-                    SharedRatelimitData.MATCHA_CLUSTER_ID
+                    CommonConfig.MATCHA_CLUSTER_ID
             );
 
             LOGGER.debug("Initializing Kafka Ratelimit client");
