@@ -5,17 +5,9 @@ services:
     build: .
     container_name: matcha
     restart: unless-stopped
-    networks:
-      - kafka
-    depends_on:
-      - kafka
     deploy:
       resources:
         limits:
           memory: 256m
-    environment:
-      KAFKA_HOST: kafka:9092
-
-networks:
-  kafka:
-    external: true
+    env_file:
+      - .env

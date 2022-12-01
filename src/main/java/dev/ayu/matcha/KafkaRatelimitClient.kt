@@ -49,14 +49,14 @@ class RatelimitClient(conn: KafkaConnection) : KafkaClient<RatelimitClientData>(
         log.debug("Incoming '$type' quota request from client '$client' in cluster $sourceCluster")
         ratelimitProvider.getClientRatelimit(client).requestQuota()
         log.debug("Granted '$type' quota request for client '$client' in cluster $sourceCluster")
-        msg.respond(null)
+        msg.respond(null, false)
     }
 
 }
 
 private class RatelimitProvider(private val burst: Int, private val duration: Duration) {
 
-    private val limiters = ConcurrentHashMap<String, SuspendingRatelimit>();
+    private val limiters = ConcurrentHashMap<String, SuspendingRatelimit>()
 
     fun getClientRatelimit(client: String): SuspendingRatelimit = limiters.computeIfAbsent(client) {
         SuspendingRatelimit(burst, duration)
