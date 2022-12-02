@@ -2,7 +2,7 @@ version: "3.8"
 services:
 
   matcha:
-    build: .
+    image: ghcr.io/beemobot/matcha:latest
     container_name: matcha
     restart: unless-stopped
     deploy:
