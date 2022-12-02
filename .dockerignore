@@ -2,8 +2,14 @@
 .gradle/
 .idea/
 build/
+gradle/
+.dockerignore
 .env
 .env.example
-Dockerfile
+.gitignore
+.gitmodules
 docker-compose.yml
+Dockerfile
+gradlew
+gradlew.bat
 README.md
