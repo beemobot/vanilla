@@ -8,7 +8,6 @@ gradle/
 .env.example
 .gitignore
 .gitmodules
-docker-compose.yml
 Dockerfile
 gradlew
 gradlew.bat
