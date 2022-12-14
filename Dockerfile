@@ -8,11 +8,13 @@ COPY modules ./modules
 
 RUN gradle downloadDependencies --no-daemon
 
-COPY . .
+COPY src src
 
 RUN gradle assemble installDist --no-daemon
 
 FROM amazoncorretto:17-alpine3.15
+
+WORKDIR /app
 
 COPY --from=build /gradle/build/install/matcha/ .
 

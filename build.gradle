@@ -16,23 +16,11 @@ kotlin {
 application {
     mainClass.set("dev.ayu.matcha.Matcha")
     applicationDefaultJvmArgs = [
-            "-XX:+UseG1GC",
-            "-XX:+ParallelRefProcEnabled",
-            "-XX:MaxGCPauseMillis=200",
-            "-XX:+UnlockExperimentalVMOptions",
-            "-XX:+DisableExplicitGC",
             "-XX:+AlwaysPreTouch",
-            "-XX:G1NewSizePercent=40",
-            "-XX:G1MaxNewSizePercent=50",
-            "-XX:G1HeapRegionSize=16M",
-            "-XX:G1ReservePercent=15",
-            "-XX:G1HeapWastePercent=5",
-            "-XX:G1MixedGCCountTarget=4",
-            "-XX:InitiatingHeapOccupancyPercent=20",
-            "-XX:G1MixedGCLiveThresholdPercent=90",
-            "-XX:G1RSetUpdatingPauseTimePercent=5",
             "-XX:+PerfDisableSharedMem",
-            "-XX:MaxTenuringThreshold=1"
+            "-XX:+UseG1GC",
+            "-XX:MaxRAMPercentage=80",
+            "-XX:MinRAMPercentage=80"
     ]
 }
 
@@ -48,7 +36,6 @@ task downloadDependencies(type: Copy) {
 
 repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -58,14 +45,6 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-api:2.18.0'
     implementation 'org.apache.logging.log4j:log4j-core:2.18.0'
     implementation 'org.apache.logging.log4j:log4j-slf4j18-impl:2.18.0'
-
-    // Kafka client
-    implementation 'org.apache.kafka:kafka-clients:3.2.0'
-    // Kafka streams
-    implementation 'org.apache.kafka:kafka-streams:3.2.0'
-
-    // JSON
-    implementation 'com.squareup.moshi:moshi:1.13.0'
 
     // Kotlin Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
