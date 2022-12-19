@@ -39,8 +39,8 @@ class RatelimitClient(conn: KafkaConnection) : KafkaClient<RatelimitClientData>(
         type: String,
     ) {
         val sourceCluster = msg.headers.sourceCluster
+        val client = msg.headers.clientId
         val expiresAt = msg.value?.requestExpiresAt
-        val client = msg.value?.client ?: "fallback"
         if (expiresAt != null && (expiresAt + EXPIRY_GRACE_PERIOD) < System.currentTimeMillis()) {
             log.info("Incoming expired '$type' quota request from client '$client' in cluster $sourceCluster, ignoring")
             // If the request has already expired, ignore it to not eat quotas unnecessarily
